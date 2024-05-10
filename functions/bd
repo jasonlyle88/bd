@@ -1,0 +1,67 @@
+# Standard Recommended Options
+# https://github.zshell.dev/docs/zsh/Zsh-Plugin-Standard.html#std-options
+emulate -L zsh
+setopt -- \
+    extended_glob \
+    warn_create_global \
+    typeset_silent \
+    no_short_loops \
+    rc_quotes \
+    no_auto_pushd
+
+# Standard Recommended Varaibles
+# https://github.zshell.dev/docs/zsh/Zsh-Plugin-Standard.html#std-variables
+local MATCH REPLY
+integer MBEGIN MEND
+local -a match mbegin mend reply
+
+# Print out usage is no parameters are given
+(($#<1)) && {
+    printf -- 'usage: %s <name-of-any-parent-directory>\n' "${0}"
+    printf -- '       %s <number-of-folders>\n' "${0}"
+
+    return 1
+} >&2
+
+local requestedDestination="${1}"
+local -a parents
+local numParents
+local destination
+local parent
+local idx
+
+parents=("${(0)"$(.bd_get_pwd_parents)"}")
+numParents="${#parents[@]}"
+
+# Build destination and 'cd' to it by looping over the parents array in reverse
+destination='./'
+for parent in "${parents[@]}"; do
+    destination+='../'
+
+    if [[ "${requestedDestination}" == "${parent}" ]]; then
+        cd "${destination}"
+
+        return $?
+    fi
+done
+
+# If the user provided an integer, go up as many times as asked
+destination='./'
+if [[ "${requestedDestination}" == <-> ]]; then
+    if [[ "${requestedDestination}" -gt "${numParents}" ]]; then
+        printf -- '%s: Error: Can not go up %s times (not enough parent directories)\n' "${0}" "${requestedDestination}"
+        return 1
+    fi
+
+    for idx in {1.."${requestedDestination}"}; do
+        destination+='../'
+    done
+
+    cd "${destination}"
+
+    return $?
+fi
+
+# If the above methods fail
+printf -- '%s: Error: No parent directory named "%s"\n' "${0}" "${requestedDestination}"
+return 1
