@@ -1,0 +1,26 @@
+# Standard Recommended Options
+# https://github.zshell.dev/docs/zsh/Zsh-Plugin-Standard.html#std-options
+emulate -L zsh
+setopt -- \
+    extended_glob \
+    warn_create_global \
+    typeset_silent \
+    no_short_loops \
+    rc_quotes \
+    no_auto_pushd
+
+# Standard Recommended Varaibles
+# https://github.zshell.dev/docs/zsh/Zsh-Plugin-Standard.html#std-variables
+local MATCH REPLY
+integer MBEGIN MEND
+local -a match mbegin mend reply
+
+local localMatcherList
+local -a parents
+
+# Get the ZStyle matcher-list value
+zstyle -s ':completion:*' 'matcher-list' 'localMatcherList'
+
+parents=("${(0)"$(.bd_get_pwd_parents)"}")
+
+compadd -V 'Parent directories' -M "${localMatcherList}" "$@" -- "${parents[@]}"

@@ -1,0 +1,39 @@
+# Standard Recommended Options
+# https://github.zshell.dev/docs/zsh/Zsh-Plugin-Standard.html#std-options
+emulate -L zsh
+setopt -- \
+    extended_glob \
+    warn_create_global \
+    typeset_silent \
+    no_short_loops \
+    rc_quotes \
+    no_auto_pushd
+
+# Standard Recommended Varaibles
+# https://github.zshell.dev/docs/zsh/Zsh-Plugin-Standard.html#std-variables
+local MATCH REPLY
+integer MBEGIN MEND
+local -a match mbegin mend reply
+
+# Seperate PWD into an array, splitting on / character
+local -a parents=(${(ps:/:)"${PWD}"})
+local numParents
+local idx
+
+# prepend root to the parents array
+parents=('/' "${parents[@]}")
+
+# Remove the current directory since it isn't a parent
+shift -p parents
+
+# Get the number of parents
+numParents="${#parents[@]}"
+
+# Print the array in reverse
+for idx in $(seq "${numParents}" -1 0); do
+    printf -- '%s' "${parents[${idx}]}"
+
+    if [[ "${idx}" -gt 1 ]]; then
+        printf -- '\0'
+    fi
+done
